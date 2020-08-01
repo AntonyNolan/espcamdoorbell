@@ -1,0 +1,79 @@
+esphome:
+  name: ant_desk_lamp_75w_rgbw
+  platform: ESP8266
+  board: esp01_1m
+
+wifi:
+  ssid: 'PonzNet'
+  password: 'gr3yskull'
+
+sensor:
+  - platform: wifi_signal
+    name: "Desk Lamp Wifi"
+    update_interval: 60s
+  - platform: uptime
+    name: "Antonys Desk Lamp Uptime"
+    
+mqtt:
+  broker: 10.0.1.250
+  port: 1883
+  username: nutznbuttz
+  password: 2PNutWL0v3
+  on_message:
+      - topic: theparamount/ant_room_desk_lamp/livingroom/config
+        then:
+        - logger.log: MQTT is connected!
+      
+ 
+logger:
+
+api:
+
+ota:
+
+web_server:
+  port: 80
+
+
+sm16716:
+  data_pin: GPIO12
+  clock_pin: GPIO14
+  num_channels: 3
+  num_chips: 1
+
+power_supply:
+  - id: rgb_power
+    pin: GPIO13
+    
+output:
+  - platform: sm16716
+    id: output_red
+    channel: 2
+    power_supply: rgb_power
+  - platform: sm16716
+    id: output_green
+    channel: 1
+    power_supply: rgb_power
+  - platform: sm16716
+    id: output_blue
+    channel: 0
+    power_supply: rgb_power
+  - platform: esp8266_pwm
+    id: output_cold_white
+    pin: GPIO5
+  - platform: esp8266_pwm
+    id: output_warm_white
+    pin: GPIO4
+
+light:
+  - platform: rgbww
+    name: End Table 1      #Change to match
+    id: endtable_light_1     #Change to match
+    red: output_red
+    green: output_green
+    blue: output_blue
+    cold_white: output_cold_white
+    warm_white: output_warm_white
+    cold_white_color_temperature: 6500 K
+    warm_white_color_temperature: 2700 K
+

@@ -1,0 +1,129 @@
+substitutions:
+  var_name: 'light_ant_room_1_122'
+  var_friendly_name: 'pmt living room fan light 1'
+  var_manual_ip: 10.0.1.122
+  var_manual_gateway: 10.0.0.1
+  var_manual_subnet: 255.255.254.0
+
+  reboot_timeout: 1h
+  update_interval: 1min
+
+  var_ap_ssid: '${var_name}_ap '
+  var_ap_password: 'gr3yskull'
+  var_ssid: 'PonzNet'
+  var_password: 'gr3yskull'
+
+  var_mqtt_broker: 10.0.1.250
+  var_mqtt_username: nutznbuttz
+  var_mqtt_password: 2PNutWL0v3
+  var_mqtt_port: '1883'
+
+esphome:
+  name: $var_name
+  platform: ESP8266
+  board: esp01_1m
+
+# WiFi + network settings
+wifi:
+  ssid: ${var_ssid} 
+  password: ${var_password} 
+  fast_connect: true
+  reboot_timeout: ${reboot_timeout}
+  manual_ip:
+    static_ip: ${var_manual_ip}
+    gateway: ${var_manual_gateway}
+    subnet: ${var_manual_subnet}
+    dns1: ${var_manual_gateway}
+    dns2: 192.168.0.1
+  ap:
+    ssid: '${var_name}'
+    password: '${var_ap_password}' # Leave '' for no password.
+
+mqtt:
+  broker: $var_mqtt_broker
+  port: $var_mqtt_port
+  username: $var_mqtt_username
+  password: $var_mqtt_password
+  on_message:
+  - topic: theparamount/esp_cam_doorbell_01/patio/config
+    then:
+    - logger.log: MQTT is connected! 
+    
+    
+# captive portal for access point mode
+captive_portal:
+
+# enabling home assistant legacy api
+api:
+  # uncomment below if needed
+  # password: 'your secret api password'
+
+# enabling over the air updates
+ota:
+  # uncomment below if needed
+  # password: 'your secret ota password'
+
+# synchronizing time with home assistant
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+
+# Logging
+logger:
+  level: DEBUG
+  # Disable logging to serial
+  baud_rate: 0
+
+
+
+sm16716:
+  data_pin: GPIO12
+  clock_pin: GPIO14
+  num_channels: 3
+  num_chips: 1
+
+power_supply:
+  - id: rgb_power
+    pin: GPIO13
+    
+output:
+  - platform: sm16716
+    id: output_red
+    channel: 2
+    power_supply: rgb_power
+  - platform: sm16716
+    id: output_green
+    channel: 1
+    power_supply: rgb_power
+  - platform: sm16716
+    id: output_blue
+    channel: 0
+    power_supply: rgb_power
+  - platform: esp8266_pwm
+    id: output_cold_white
+    pin: GPIO5
+  - platform: esp8266_pwm
+    id: output_warm_white
+    pin: GPIO4
+
+light:
+  - platform: rgbww
+    name: $var_name      #Change to match
+    id: $var_name    #Change to match
+    red: output_red
+    green: output_green
+    blue: output_blue
+    cold_white: output_cold_white
+    warm_white: output_warm_white
+    cold_white_color_temperature: 6500 K
+    warm_white_color_temperature: 2700 K
+
+    effects:
+      - random:
+      - random:
+          name: 'random slow'
+          update_interval: 30s
+          transition_length: 7.5s
+
+    # Attempt to restore state and default to ON if the physical switch is actuated.
+    restore_mode: RESTORE_DEFAULT_ON
